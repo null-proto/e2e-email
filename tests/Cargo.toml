@@ -1,6 +1,12 @@
 [package]
 name = "tests"
-version = "0.1.0"
+version = "0.0.1-tests"
 edition = "2024"
 
-[dependencies]
+
+[[test]]
+name = "main"
+path = "int.rs"
+
+
+[dev-dependencies]
