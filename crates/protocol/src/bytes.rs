@@ -129,3 +129,10 @@ impl<'a> Into<Bytes<'a>> for RawBytes {
     Bytes::Bytes(self)
   }
 }
+
+impl<'a> Into<Bytes<'a>> for &'a str {
+  fn into(self) -> Bytes<'a> {
+    Bytes::Str(self)
+  }
+}
+
