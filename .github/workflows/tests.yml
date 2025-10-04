@@ -20,7 +20,7 @@ jobs:
       run: cargo build --verbose
     - uses: actions/upload-artifact@v4
       with:
-        name: ${{ github.repository.split('/')[1] }}-glibc-amd64-${{ github.run_number.split('/')[1] }}
+        name: ${{ github.event.repository.name }}-glibc-amd64-${{ github.event.repository.name }}
         path: |
           .target/debug/mr
           .target/debug/mtpc
