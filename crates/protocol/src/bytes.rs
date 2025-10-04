@@ -25,7 +25,7 @@ impl RawBytes {
     }
   }
 
-  pub fn from_arr<'a>(data: &'a [u8], start: usize, end: usize) -> Self {
+  pub fn from<'a>(data: &'a [u8], start: usize, end: usize) -> Self {
     Self {
       data: Arc::from(data),
       start: start,
@@ -35,7 +35,15 @@ impl RawBytes {
 }
 
 impl<'a> Bytes<'a> {
-  pub fn from_arc(data: Arc<[u8]>, start: usize, end: usize) -> Self {
+  pub fn from(data: &'a [u8], start: usize, end: usize) -> Self {
+    Bytes::Bytes(RawBytes {
+      data: Arc::from(data),
+      start: start,
+      end: end,
+    })
+  }
+
+  pub fn from_atomic(data: Arc<[u8]>, start: usize, end: usize) -> Self {
     Bytes::Bytes(RawBytes {
       data: data.clone(),
       start: start,
