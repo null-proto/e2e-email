@@ -1,3 +1,5 @@
+use crate::serde::Serde;
+
 pub struct Frame {
   version: u8,
   size: u32,
@@ -5,8 +7,8 @@ pub struct Frame {
   data: Vec<u8>,
 }
 
-impl Frame {
-  pub fn serialize<'a>(&'a self) -> Vec<u8> {
+impl Serde for Frame {
+  fn serialize<'a>(&'a self) -> Vec<u8> {
     let mut v = Vec::with_capacity(self.size as usize + 5);
     v.push(self.version);
     v.push(self.size as u8);
