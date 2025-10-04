@@ -1,10 +1,10 @@
-use crate::serde::Serde;
+use crate::serde::{Deser, Serde};
 
 pub struct Frame {
   version: u8,
   size: u32,
   id: u8,
-  data: Vec<u8>,
+  data: Box<[u8]>,
 }
 
 impl Serde for Frame {
@@ -19,13 +19,16 @@ impl Serde for Frame {
     v.extend_from_slice(&self.data);
     v
   }
+}
 
-  pub fn deserialize<'a>(data: &'a [u8]) -> Self {
-    Self {
+impl<'a> Deser<'a> for Frame {
+  type Type = Self;
+  fn deserialize(data: &'a [u8]) -> crate::error::Result<Self::Type> {
+    Ok(Self {
       version: data[0],
       size: ((data[1] as u32) << data[2]) << data[3],
       id: data[4],
-      data: data[5..].to_vec(),
-    }
+      data: data[5..].into(),
+    })
   }
 }

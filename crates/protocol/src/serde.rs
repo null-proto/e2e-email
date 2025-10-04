@@ -5,7 +5,7 @@ pub trait Serde {
   fn serialize(&self) -> Vec<u8>;
 }
 
-pub trait Deser {
+pub trait Deser<'a> {
   type Type;
-  fn deserialize() -> Result<Self::Type>;
+  fn deserialize(data : &'a [u8]) -> Result<Self::Type>;
 }

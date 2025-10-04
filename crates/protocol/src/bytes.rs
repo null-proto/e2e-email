@@ -135,4 +135,3 @@ impl<'a> Into<Bytes<'a>> for &'a str {
     Bytes::Str(self)
   }
 }
-

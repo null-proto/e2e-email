@@ -1,4 +1,4 @@
-use crate::bytes::{Bytes, RawBytes};
+use crate::{bytes::{Bytes, RawBytes}, serde::Serde};
 use std::{collections::HashMap, sync::Arc};
 
 pub struct Kv<'a>(HashMap<Bytes<'a>, RawBytes>);
@@ -35,5 +35,18 @@ impl<'a> Kv<'a> {
 impl<'a> KvBuilder<'a> {
   pub fn insert(&mut self, key: &'a str, value: &'a str) {
     self.0.push((key, value));
+  }
+}
+
+impl Serde for KvBuilder<'_> {
+  fn serialize(&self) -> Vec<u8> {
+    let mut buf = Vec::default();
+    for (k,v) in &self.0 {
+      buf.push(k.as_bytes().len() as u8);
+      buf.extend_from_slice(k.as_bytes());
+      buf.push(v.as_bytes().len() as u8);
+      buf.extend_from_slice(v.as_bytes());
+    }
+    buf
   }
 }
