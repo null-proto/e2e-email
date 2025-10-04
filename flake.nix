@@ -12,10 +12,11 @@
 	in{
 		devShells.${system}.default = pkgs.mkShell {
 			buildInputs = [
-			  pkgs.rustc
-				pkgs.rust-analyzer
-				pkgs.cargo
-				pkgs.rustfmt
+				#  pkgs.rustc
+				# pkgs.rust-analyzer
+				# pkgs.cargo
+				# pkgs.rustfmt
+				pkgs.rustup
 			];
 		};
   };
