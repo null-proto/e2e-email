@@ -1,3 +1,4 @@
+use std::fmt::Display;
 use std::hash::Hash;
 use std::sync::Arc;
 
@@ -133,5 +134,17 @@ impl<'a> Into<Bytes<'a>> for RawBytes {
 impl<'a> Into<Bytes<'a>> for &'a str {
   fn into(self) -> Bytes<'a> {
     Bytes::Str(self)
+  }
+}
+
+impl Display for RawBytes {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    write!(f , "{}" , self.try_str().unwrap_or("---"))
+  }
+}
+
+impl Display for Bytes<'_> {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    write!(f , "{}" , self.try_str().unwrap_or("---"))
   }
 }
