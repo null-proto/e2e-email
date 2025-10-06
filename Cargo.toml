@@ -10,3 +10,5 @@ default-membres = [ "server/*" , "client/*" ]
 
 [workspace.dependencies]
 protocol = { path = "crates/protocol" }
+tokio = { version = "1.47.1" , features = [ "net" ] }
+rand = "0.9.2"
