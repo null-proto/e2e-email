@@ -1,7 +1,14 @@
+use std::io::Read;
+
+use crate::{
+  error::{Error, Result},
+  kv::Kv,
+};
+
 //      A Frame is the minimum level of network transaction and it is only used in the networkstack.
-//   First 96 bits in the frame is fixed length that tells information about remainings. Current 
+//   First 96 bits in the frame is fixed length that tells information about remainings. Current
 //   definition only suitable for TCP connection.
-//   
+//
 //
 //   0                7                 15                23                 31
 //   +------------------------------------------------------------------------+   0
@@ -41,7 +48,7 @@
 //   first bit is set if the frame is the last part of data.
 //
 //   # Id (24-bits)
-//   Frame identifier, used to reconstruct multiplexed frame just like http2. Zero(0x00) is 
+//   Frame identifier, used to reconstruct multiplexed frame just like http2. Zero(0x00) is
 //   special id that means data is not multiplexed.
 //
 //   # Frame Size ( 16-bits)
@@ -50,12 +57,75 @@
 //
 //   # Padding (32-bit)
 //   32bit padding after frame size, that MUSTBE 0x00.
-//   
-pub struct Frame {
-  version : u8,
-  ftype : u8,
-  flags : u8,
-  id : (u8,u8,u8),
-  size : u16,
-  data : Option<Box<[u8]>>
+//
+pub struct Frame<'a> {
+  version: u8,
+  flags: FrameFlags,
+  id: (u8, u8, u8),
+  size: u16,
+  data: FrameType<'a>,
+}
+
+pub struct FrameFlags {
+  pub last_frame: bool,
+}
+
+pub enum FrameType<'a> {
+  Kv(Kv<'a>),
+  Raw(Box<[u8]>),
+  Text(String),
+  Ping,
+}
+
+impl<'a> Frame<'a> {
+  pub fn new<T>(io: &mut T) -> Result<Self>
+  where
+    T: Read,
+  {
+    let mut buf = [0u8; 12];
+    _ = io.read(&mut buf);
+    let version = buf[0];
+    let ftype = buf[1];
+    let flags = FrameFlags {
+      last_frame: (buf[2] >> 7) == 1,
+    };
+    let id: (u8, u8, u8) = (buf[3], buf[4], buf[5]);
+    let size: u16 = (buf[6] as u16) << 8 | (buf[7] as u16);
+
+    let data = match ftype {
+      0x00 => Err(Error::ConnectionError),
+      0x01 => {
+        // text
+        let mut data = vec![0u8; size as usize];
+        _ = io.read(&mut data);
+        Ok(FrameType::Text(
+          String::from_utf8(data).map_err(|_| Error::InvalidString)?,
+        ))
+      }
+      0x02 => {
+        // kv
+        let mut data = vec![0u8; size as usize].into_boxed_slice();
+        _ = io.read(&mut data);
+        let kv = Kv::try_from(data.as_ref())?;
+        Ok(FrameType::Kv(kv))
+      }
+      0x03 => {
+        // raw
+        let mut data = vec![0u8; size as usize].into_boxed_slice();
+        _ = io.read(&mut data);
+        Ok(FrameType::Raw(data))
+      }
+
+      0x04 => Ok(FrameType::Ping),
+      _ => Err(Error::InvalidFrame),
+    }?;
+
+    Ok(Self {
+      version,
+      flags,
+      id,
+      size,
+      data,
+    })
+  }
 }
