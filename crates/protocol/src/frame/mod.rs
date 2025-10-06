@@ -5,6 +5,8 @@ use crate::{
   kv::Kv,
 };
 
+pub mod builder;
+
 //      A Frame is the minimum level of network transaction and it is only used in the networkstack.
 //   First 96 bits in the frame is fixed length that tells information about remainings. Current
 //   definition only suitable for TCP connection.
@@ -59,15 +61,15 @@ use crate::{
 //   32bit padding after frame size, that MUSTBE 0x00.
 //
 pub struct Frame<'a> {
-  version: u8,
-  flags: FrameFlags,
-  id: (u8, u8, u8),
-  size: u16,
-  data: FrameType<'a>,
+  pub(crate) version: u8,
+  pub(crate) flags: FrameFlags,
+  pub(crate) id: (u8, u8, u8),
+  pub(crate) size: u16,
+  pub(crate) data: FrameType<'a>,
 }
 
 pub struct FrameFlags {
-  pub last_frame: bool,
+  pub(crate) last_frame: bool,
 }
 
 pub enum FrameType<'a> {
@@ -84,11 +86,18 @@ impl<'a> Frame<'a> {
   {
     let mut buf = [0u8; 12];
     _ = io.read(&mut buf);
-    let version = buf[0];
+
+    let version = if buf[0] == 0x01 {
+      Ok(0x01)
+    } else {
+      Err(Error::FrameErrorUnsupportedVersion)
+    }?;
+
     let ftype = buf[1];
     let flags = FrameFlags {
       last_frame: (buf[2] >> 7) == 1,
     };
+
     let id: (u8, u8, u8) = (buf[3], buf[4], buf[5]);
     let size: u16 = (buf[6] as u16) << 8 | (buf[7] as u16);
 
@@ -97,7 +106,7 @@ impl<'a> Frame<'a> {
       0x01 => {
         // text
         let mut data = vec![0u8; size as usize];
-        _ = io.read(&mut data);
+        io.read(&mut data).map_err(|_| Error::ConnectionError)?;
         Ok(FrameType::Text(
           String::from_utf8(data).map_err(|_| Error::InvalidString)?,
         ))
@@ -105,14 +114,14 @@ impl<'a> Frame<'a> {
       0x02 => {
         // kv
         let mut data = vec![0u8; size as usize].into_boxed_slice();
-        _ = io.read(&mut data);
+        io.read(&mut data).map_err(|_| Error::ConnectionError)?;
         let kv = Kv::try_from(data.as_ref())?;
         Ok(FrameType::Kv(kv))
       }
       0x03 => {
         // raw
         let mut data = vec![0u8; size as usize].into_boxed_slice();
-        _ = io.read(&mut data);
+        io.read(&mut data).map_err(|_| Error::ConnectionError)?;
         Ok(FrameType::Raw(data))
       }
 

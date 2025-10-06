@@ -1,4 +1,4 @@
-use crate::{bytes::{Bytes, RawBytes}, error::Error, serde::Serde};
+use crate::{bytes::{Bytes, RawBytes}, error::Error, serde::{Deser, Serde}};
 use std::{collections::HashMap, sync::Arc};
 
 pub struct Kv<'a>(HashMap<Bytes<'a>, RawBytes>);

@@ -3,7 +3,8 @@ pub enum Error {
   InvalidKv,
   InvalidUtfString,
   InvalidString,
-  ConnectionError
+  ConnectionError,
+  FrameErrorUnsupportedVersion
 }
 
 pub type Result<T> = core::result::Result<T, Error>;
