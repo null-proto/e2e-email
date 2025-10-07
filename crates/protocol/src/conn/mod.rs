@@ -1,5 +1,7 @@
 use tokio::net::TcpStream;
 
+use crate::{frame::builder::FrameBuilder, mail::{File, Mail}};
+
 pub struct Stream {
   io : TcpStream,
 }
@@ -13,3 +15,14 @@ impl Stream {
   }
 }
 
+
+impl Stream {
+  pub(crate) fn send_file(&mut self, file: File) {
+
+  }
+
+  pub fn send_mail(&mut self , mail : Mail) {
+    let (kv , files) = mail.destruct();
+    let fb = FrameBuilder
+  }
+}

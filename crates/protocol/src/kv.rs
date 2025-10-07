@@ -37,6 +37,10 @@ impl<'a> Kv<'a> {
   pub fn get(&'a self, k: &'a str) -> Option<&'a str> {
     self.0.get(&k.into()).map(|i| i.try_str().ok() )?
   }
+
+  pub fn len(&self) -> usize {
+    self.0.len()
+  }
 }
 
 impl<'a> KvBuilder<'a> {

@@ -33,6 +33,7 @@ pub mod builder;
 //     KEY_VALUE = 2,
 //     RAW = 3,
 //     PING = 4,
+//     FIN = 5,
 //   }
 //   ```
 //
@@ -44,6 +45,7 @@ pub mod builder;
 //   >  RAW       :  binary data
 //   >  PING      :  Ping is a special type that assumed not contains payload, frame size will
 //   >               discarded.
+//   >  FIN       :  Finish transactions and close socket.
 //
 //
 //   # Flags (8-bits)
@@ -77,12 +79,13 @@ pub enum FrameType<'a> {
   Raw(Box<[u8]>),
   Text(String),
   Ping,
+  Fin,
 }
 
 impl<'a> Frame<'a> {
-  pub fn new<T>(io: &mut T) -> Result<Self>
+  pub async fn new<T>(io: &mut T) -> Result<Self>
   where
-    T: Read,
+    T: Read + Send + Sync,
   {
     let mut buf = [0u8; 12];
     _ = io.read(&mut buf);
@@ -126,6 +129,7 @@ impl<'a> Frame<'a> {
       }
 
       0x04 => Ok(FrameType::Ping),
+      0x05 => Ok(FrameType::Fin),
       _ => Err(Error::InvalidFrame),
     }?;
 

@@ -2,10 +2,9 @@ use crate::serde::Serde;
 
 pub struct FrameBuilder {
   pub(crate) id: (u8, u8, u8),
-  pub(crate) size : u16,
   pub(crate) ftype : u8,
   pub(crate) flags: FrameBuilderFlags,
-  pub(crate) data: Box<[u8]>,
+  pub(crate) data: Option<Box<[u8]>>,
 }
 
 pub struct FrameBuilderFlags {
@@ -15,16 +14,38 @@ pub struct FrameBuilderFlags {
 impl Serde for FrameBuilder {
   fn serialize(&self) -> Vec<u8> {
     let flags = if self.flags.last_frame { 0b1000_0000u8 } else { 0x00u8 };
+    let mut data = Vec::with_capacity( 12usize + self.data.as_ref().map(|i| i.len()).unwrap_or(0) );
 
-    let mut data = Vec::with_capacity( 12usize + self.size as usize );
 
-    data.extend_from_slice( &[
-      0x01, self.ftype , flags , self.id.0 ,
-      self.id.1 , self.id.2 , self.size as u8 , (self.size >> 8) as u8,
-      0x00,0x00,0x00,0x00,
-    ]);
-    data.extend_from_slice(&self.data);
+    if let Some(d) = &self.data {
+      let size = d.len() as u16;
+
+      data.extend_from_slice( &[
+        0x01, self.ftype , flags , self.id.0 ,
+        self.id.1 , self.id.2 , size as u8 , (size >> 8) as u8,
+        0x00,0x00,0x00,0x00,
+      ]);
+      data.extend_from_slice(d);
+    } else {
+      data.extend_from_slice( &[
+        0x01, self.ftype , flags , self.id.0 ,
+        self.id.1 , self.id.2 , 0x00 ,0x00,
+        0x00,0x00,0x00,0x00,
+      ]);
+    }
 
     data
   }
+}
+
+impl FrameBuilder {
+  pub fn builder() -> FrameBuilder {
+    Self { id: (0,0,0), ftype: 0, flags: FrameBuilderFlags { last_frame: true }, data: None }
+  }
+
+  pub fn flag_last(mut self, f : bool ) -> Self {
+    self.flags.last_frame = f;
+    self
+  }
+
 }
