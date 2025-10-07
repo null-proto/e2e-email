@@ -1,5 +1,7 @@
 use std::io::Read;
 
+use tokio::io::AsyncRead;
+
 use crate::{
   error::{Error, Result},
   kv::Kv,
@@ -85,7 +87,7 @@ pub enum FrameType<'a> {
 impl<'a> Frame<'a> {
   pub async fn new<T>(io: &mut T) -> Result<Self>
   where
-    T: Read + Send + Sync,
+    T: AsyncRead + Send + Sync,
   {
     let mut buf = [0u8; 12];
     _ = io.read(&mut buf);

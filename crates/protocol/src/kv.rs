@@ -1,7 +1,7 @@
 use crate::{bytes::{Bytes, RawBytes}, error::Error, serde::Serde};
 use std::{collections::HashMap, sync::Arc};
 
-pub struct Kv<'a>(HashMap<Bytes<'a>, RawBytes>);
+pub struct Kv<'a>(HashMap<Bytes<'a>, RawBytes>,Arc<[u8]>);
 
 pub struct KvBuilder<'a>(Vec<(&'a str, &'a str)>);
 
@@ -26,7 +26,7 @@ impl TryFrom<&[u8]> for Kv<'_> {
         return Err(Error::InvalidFrame);
       }
     }
-    Ok(Kv(map))
+    Ok(Kv(map , value.clone()))
   }
 }
 
@@ -51,7 +51,7 @@ impl TryFrom<Box<[u8]>> for Kv<'_> {
         return Err(Error::InvalidFrame);
       }
     }
-    Ok(Kv(map))
+    Ok(Kv(map, value.clone()))
   }
 }
 
@@ -76,7 +76,7 @@ impl TryFrom<Vec<u8>> for Kv<'_> {
         return Err(Error::InvalidFrame);
       }
     }
-    Ok(Kv(map))
+    Ok(Kv(map, value.clone()))
   }
 }
 
@@ -93,6 +93,12 @@ impl<'a> Kv<'a> {
 impl<'a> KvBuilder<'a> {
   pub fn insert(&mut self, key: &'a str, value: &'a str) {
     self.0.push((key, value));
+  }
+}
+
+impl Serde for Kv<'_> {
+  fn serialize(&self) -> Vec<u8> {
+    self.1.to_vec()
   }
 }
 

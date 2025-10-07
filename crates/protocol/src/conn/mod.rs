@@ -1,6 +1,7 @@
 use tokio::net::TcpStream;
+use std::{error::Error, io::Write};
 
-use crate::{frame::builder::FrameBuilder, mail::{File, Mail}};
+use crate::{frame::{builder::FrameBuilder, Frame}, mail::{File, Mail}, serde::Serde};
 
 pub struct Stream {
   io : TcpStream,
@@ -17,12 +18,34 @@ impl Stream {
 
 
 impl Stream {
-  pub(crate) fn send_file(&mut self, file: File) {
+  pub fn send_mail(&mut self , mail : Mail) -> Result<() , Box<dyn Error>>{
+    let id=(0,0,0);
+    let (kv , files) = mail.destruct();
+    let fb = FrameBuilder::builder()
+      .id(id)
+      .attach_kv(kv);
+    self.io.try_write(&fb.serialize())?;
 
+    for f in files {
+      let (kv , data) = f.destruct();
+      let fb = FrameBuilder::builder()
+        .id(id)
+        .attach_kv(kv);
+      self.io.try_write(&fb.serialize())?;
+
+      let fb = FrameBuilder::builder()
+        .id(id)
+        .attach_raw_data(data);
+      self.io.try_write(&fb.serialize())?;
+    }
+
+    self.io.try_write(&FrameBuilder::fin(id).serialize())?;
+    Ok(())
   }
 
-  pub fn send_mail(&mut self , mail : Mail) {
-    let (kv , files) = mail.destruct();
-    let fb = FrameBuilder::builder();
+  pub fn recv_mail<'a>(&mut self) -> Result<Mail<'a> , Box<dyn Error>> {
+
+    let mailmeta = Frame::new(&mut self.io);
+    todo!()
   }
 }

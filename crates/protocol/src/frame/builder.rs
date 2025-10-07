@@ -1,4 +1,4 @@
-use crate::kv::KvBuilder;
+use crate::kv::{Kv, KvBuilder};
 use crate::serde::Serde;
 
 pub struct FrameBuilder {
@@ -57,13 +57,24 @@ impl FrameBuilder {
     self
   }
 
+  pub fn id(mut self,id: (u8,u8,u8)) -> Self {
+    self.id = id;
+    self
+  }
+
   pub fn attach_raw_data(mut self , data : Box<[u8]>) -> Self {
     self.ftype = 0x03;
     self.data = Some(data);
     self
   }
 
-  pub fn attach_kv<'a>(mut self , kv : KvBuilder<'a>) -> Self {
+  pub fn attach_kv<'a>(mut self , kv : Kv<'a>) -> Self {
+    self.ftype = 0x02;
+    self.data = Some(kv.serialize().into());
+    self
+  }
+
+  pub fn attach_kvbuilder<'a>(mut self , kv : KvBuilder<'a>) -> Self {
     self.ftype = 0x02;
     self.data = Some(kv.serialize().into());
     self
