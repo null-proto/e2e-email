@@ -23,6 +23,6 @@ impl Stream {
 
   pub fn send_mail(&mut self , mail : Mail) {
     let (kv , files) = mail.destruct();
-    let fb = FrameBuilder
+    let fb = FrameBuilder::builder();
   }
 }

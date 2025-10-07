@@ -1,3 +1,4 @@
+use crate::kv::KvBuilder;
 use crate::serde::Serde;
 
 pub struct FrameBuilder {
@@ -39,6 +40,14 @@ impl Serde for FrameBuilder {
 }
 
 impl FrameBuilder {
+  pub fn ping() -> Self {
+    Self { id: (0,0,0), ftype: 0x04, flags: FrameBuilderFlags { last_frame: false }, data: None }
+  }
+
+  pub fn fin(id: (u8,u8,u8)) -> Self {
+    Self { id, ftype: 0x05, flags: FrameBuilderFlags { last_frame: false }, data: None }
+  }
+
   pub fn builder() -> FrameBuilder {
     Self { id: (0,0,0), ftype: 0, flags: FrameBuilderFlags { last_frame: true }, data: None }
   }
@@ -48,4 +57,21 @@ impl FrameBuilder {
     self
   }
 
+  pub fn attach_raw_data(mut self , data : Box<[u8]>) -> Self {
+    self.ftype = 0x03;
+    self.data = Some(data);
+    self
+  }
+
+  pub fn attach_kv<'a>(mut self , kv : KvBuilder<'a>) -> Self {
+    self.ftype = 0x02;
+    self.data = Some(kv.serialize().into());
+    self
+  }
+
+  pub fn attach_text<'a>(mut self , s : &'a str) -> Self {
+    self.ftype = 0x01;
+    self.data = Some(s.as_bytes().into());
+    self
+  }
 }

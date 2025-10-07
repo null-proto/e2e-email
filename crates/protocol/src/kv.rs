@@ -10,10 +10,8 @@ impl TryFrom<&[u8]> for Kv<'_> {
   fn try_from(value: &[u8]) -> Result<Self, Self::Error> {
     let mut map = HashMap::default();
     let value: Arc<[u8]> = Arc::from(value);
-
     let mut c = 0usize;
     let mut a = 0usize;
-
     while c < value.len() {
       if let Some(v) = value.get(c) {
         a += *v as usize + 1;
@@ -28,7 +26,56 @@ impl TryFrom<&[u8]> for Kv<'_> {
         return Err(Error::InvalidFrame);
       }
     }
+    Ok(Kv(map))
+  }
+}
 
+impl TryFrom<Box<[u8]>> for Kv<'_> {
+  type Error = crate::error::Error;
+  fn try_from(value: Box<[u8]>) -> Result<Self, Self::Error> {
+    let mut map = HashMap::default();
+    let value: Arc<[u8]> = Arc::from(value);
+    let mut c = 0usize;
+    let mut a = 0usize;
+    while c < value.len() {
+      if let Some(v) = value.get(c) {
+        a += *v as usize + 1;
+      } else { break; }
+
+      if let Some(v) = value.get(a) {
+        let key = RawBytes::new(value.clone(), c + 1, a);
+        c += *v as usize + 1;
+        let value = RawBytes::new(value.clone(), a + 1, c);
+        map.insert(key.into(), value);
+      } else {
+        return Err(Error::InvalidFrame);
+      }
+    }
+    Ok(Kv(map))
+  }
+}
+
+impl TryFrom<Vec<u8>> for Kv<'_> {
+  type Error = crate::error::Error;
+  fn try_from(value: Vec<u8>) -> Result<Self, Self::Error> {
+    let mut map = HashMap::default();
+    let value: Arc<[u8]> = Arc::from(value);
+    let mut c = 0usize;
+    let mut a = 0usize;
+    while c < value.len() {
+      if let Some(v) = value.get(c) {
+        a += *v as usize + 1;
+      } else { break; }
+
+      if let Some(v) = value.get(a) {
+        let key = RawBytes::new(value.clone(), c + 1, a);
+        c += *v as usize + 1;
+        let value = RawBytes::new(value.clone(), a + 1, c);
+        map.insert(key.into(), value);
+      } else {
+        return Err(Error::InvalidFrame);
+      }
+    }
     Ok(Kv(map))
   }
 }
