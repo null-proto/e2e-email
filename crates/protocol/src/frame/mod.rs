@@ -1,6 +1,6 @@
-use std::io::Read;
+use std::{io::Read, net::TcpStream};
 
-use tokio::io::AsyncRead;
+use tokio::{io::AsyncRead, net::unix::ReadHalf};
 
 use crate::{
   error::{Error, Result},
@@ -85,9 +85,7 @@ pub enum FrameType<'a> {
 }
 
 impl<'a> Frame<'a> {
-  pub async fn new<T>(io: &mut T) -> Result<Self>
-  where
-    T: AsyncRead + Send + Sync,
+  pub async fn new(io: &mut TcpStream) -> Result<Self>
   {
     let mut buf = [0u8; 12];
     _ = io.read(&mut buf);

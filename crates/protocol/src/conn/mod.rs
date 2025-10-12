@@ -1,4 +1,4 @@
-use tokio::net::TcpStream;
+use std::net::TcpStream;
 use std::{error::Error, io::Write};
 
 use crate::{frame::{builder::FrameBuilder, Frame}, mail::{File, Mail}, serde::Serde};
@@ -24,22 +24,22 @@ impl Stream {
     let fb = FrameBuilder::builder()
       .id(id)
       .attach_kv(kv);
-    self.io.try_write(&fb.serialize())?;
+    self.io.write(&fb.serialize())?;
 
     for f in files {
       let (kv , data) = f.destruct();
       let fb = FrameBuilder::builder()
         .id(id)
         .attach_kv(kv);
-      self.io.try_write(&fb.serialize())?;
+      self.io.write(&fb.serialize())?;
 
       let fb = FrameBuilder::builder()
         .id(id)
         .attach_raw_data(data);
-      self.io.try_write(&fb.serialize())?;
+      self.io.write(&fb.serialize())?;
     }
 
-    self.io.try_write(&FrameBuilder::fin(id).serialize())?;
+    self.io.write(&FrameBuilder::fin(id).serialize())?;
     Ok(())
   }
 
