@@ -139,12 +139,12 @@ impl<'a> Into<Bytes<'a>> for &'a str {
 
 impl Display for RawBytes {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    write!(f , "{}" , self.try_str().unwrap_or("---"))
+    write!(f, "{}", self.try_str().unwrap_or("---"))
   }
 }
 
 impl Display for Bytes<'_> {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    write!(f , "{}" , self.try_str().unwrap_or("---"))
+    write!(f, "{}", self.try_str().unwrap_or("---"))
   }
 }

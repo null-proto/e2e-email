@@ -1,27 +1,34 @@
-use std::io::{Read, Write};
 use crate::error;
 use crate::error::Result;
+use crate::frame::Frame;
+use crate::frame::builder::FrameBuilder;
 use crate::frame::{FrameType, field};
 use crate::mail::File;
-use crate::serde::Serde;
 use crate::mail::Mail;
-use crate::frame::builder::FrameBuilder;
-use crate::frame::Frame;
+use crate::serde::Serde;
+use std::io::Read;
+use std::io::Write;
 
-pub struct Stream<T> where T : Read+Write  {
+pub struct Stream<T>
+where
+  T: Read + Write,
+{
   io: T,
 }
 
-unsafe impl<T:Read+Write> Send for Stream<T> {}
-unsafe impl<T:Read+Write> Sync for Stream<T> {}
+unsafe impl<T: Read + Write> Send for Stream<T> {}
+unsafe impl<T: Read + Write> Sync for Stream<T> {}
 
-impl<T> Stream<T> where T : Read + Write {
+impl<T> Stream<T>
+where
+  T: Read + Write,
+{
   pub fn new(io: T) -> Self {
     Self { io }
   }
 }
 
-impl<T:Read+Write> Stream<T> {
+impl<T: Read + Write> Stream<T> {
   pub fn send_mail(&mut self, mail: Mail) -> Result<()> {
     let id = (0, 0, 0);
     let (kv, files) = mail.destruct();

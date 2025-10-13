@@ -1,4 +1,3 @@
-
 #[derive(Debug)]
 pub enum Error {
   InvalidFrame,
@@ -6,7 +5,7 @@ pub enum Error {
   InvalidUtfString,
   InvalidString,
   ConnectionError,
-  FrameErrorUnsupportedVersion
+  FrameErrorUnsupportedVersion,
 }
 
 pub type Result<T> = core::result::Result<T, Error>;

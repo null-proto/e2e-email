@@ -1,9 +1,8 @@
-use std::{io::Read, net::TcpStream};
+use std::io::Read;
 
-use crate::{
-  error::{Error, Result},
-  kv::Kv,
-};
+use crate::kv::Kv;
+use crate::error::Result;
+use crate::error::Error;
 
 pub mod builder;
 pub mod field;
@@ -84,8 +83,7 @@ pub enum FrameType<'a> {
 }
 
 impl<'a, 'b> Frame<'b> {
-  pub fn new<T: Read>(io:&'a mut T) -> Result<Self>
-  {
+  pub fn new<T: Read>(io: &'a mut T) -> Result<Self> {
     let mut buf = [0u8; 12];
     _ = io.read(&mut buf);
 
