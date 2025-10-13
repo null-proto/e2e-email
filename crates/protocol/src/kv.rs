@@ -105,6 +105,10 @@ impl<'a> Kv<'a> {
     self.0.get(&k.into()).map(|i| i.try_str().ok())?
   }
 
+  pub fn get_raw(&'a self, k: &'a str) -> Option<RawBytes> {
+    self.0.get(&k.into()).map(|i| i.to_owned())
+  }
+
   pub fn len(&self) -> usize {
     self.0.len()
   }
