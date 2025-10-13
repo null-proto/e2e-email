@@ -1,13 +1,12 @@
 use std::{io::Read, net::TcpStream};
 
-use tokio::{io::AsyncRead, net::unix::ReadHalf};
-
 use crate::{
   error::{Error, Result},
   kv::Kv,
 };
 
 pub mod builder;
+pub mod field;
 
 //      A Frame is the minimum level of network transaction and it is only used in the networkstack.
 //   First 96 bits in the frame is fixed length that tells information about remainings. Current
@@ -84,8 +83,8 @@ pub enum FrameType<'a> {
   Fin,
 }
 
-impl<'a> Frame<'a> {
-  pub async fn new(io: &mut TcpStream) -> Result<Self>
+impl<'a, 'b> Frame<'b> {
+  pub fn new(io:&'a mut TcpStream) -> Result<Self>
   {
     let mut buf = [0u8; 12];
     _ = io.read(&mut buf);

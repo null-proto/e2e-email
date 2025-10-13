@@ -6,7 +6,7 @@ use crate::{bytes::RawBytes, kv::Kv};
 pub struct Mail<'a> {
   from : RawBytes,
   to : RawBytes,
-  subject : RawBytes,
+  title : RawBytes,
   meta : Kv<'a>,
   body : Box<[File<'a>]>
 }
