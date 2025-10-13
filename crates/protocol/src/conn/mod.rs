@@ -1,30 +1,27 @@
-use std::io::Write;
-use std::net::TcpStream;
-
+use std::io::{Read, Write};
 use crate::error;
 use crate::error::Result;
 use crate::frame::{FrameType, field};
 use crate::mail::File;
-use crate::{
-  frame::{Frame, builder::FrameBuilder},
-  mail::Mail,
-  serde::Serde,
-};
+use crate::serde::Serde;
+use crate::mail::Mail;
+use crate::frame::builder::FrameBuilder;
+use crate::frame::Frame;
 
-pub struct Stream {
-  io: TcpStream,
+pub struct Stream<T> where T : Read+Write  {
+  io: T,
 }
 
-unsafe impl Send for Stream {}
-unsafe impl Sync for Stream {}
+unsafe impl<T:Read+Write> Send for Stream<T> {}
+unsafe impl<T:Read+Write> Sync for Stream<T> {}
 
-impl Stream {
-  pub fn new(io: TcpStream) -> Self {
+impl<T> Stream<T> where T : Read + Write {
+  pub fn new(io: T) -> Self {
     Self { io }
   }
 }
 
-impl Stream {
+impl<T:Read+Write> Stream<T> {
   pub fn send_mail(&mut self, mail: Mail) -> Result<()> {
     let id = (0, 0, 0);
     let (kv, files) = mail.destruct();

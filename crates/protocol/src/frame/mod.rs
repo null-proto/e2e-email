@@ -84,7 +84,7 @@ pub enum FrameType<'a> {
 }
 
 impl<'a, 'b> Frame<'b> {
-  pub fn new(io:&'a mut TcpStream) -> Result<Self>
+  pub fn new<T: Read>(io:&'a mut T) -> Result<Self>
   {
     let mut buf = [0u8; 12];
     _ = io.read(&mut buf);
