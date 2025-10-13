@@ -108,10 +108,16 @@ dependencies = [
 [[package]]
 name = "mr"
 version = "0.1.0"
+dependencies = [
+ "protocol",
+]
 
 [[package]]
 name = "mtpc"
 version = "0.1.0"
+dependencies = [
+ "protocol",
+]
 
 [[package]]
 name = "object"
@@ -213,6 +219,9 @@ checksum = "7a2ae44ef20feb57a68b23d846850f861394c2e02dc425a50098ae8c90267589"
 [[package]]
 name = "smc"
 version = "0.1.0"
+dependencies = [
+ "protocol",
+]
 
 [[package]]
 name = "socket2"

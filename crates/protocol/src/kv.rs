@@ -2,6 +2,7 @@ use crate::bytes::Bytes;
 use crate::bytes::RawBytes;
 use crate::error::Error;
 use crate::serde::Serde;
+use std::slice::Iter;
 use std::{collections::HashMap, sync::Arc};
 
 pub struct Kv<'a>(HashMap<Bytes<'a>, RawBytes>, Arc<[u8]>);
@@ -155,6 +156,22 @@ impl Serde for KvBuilder<'_> {
       buf.extend_from_slice(v);
     }
     buf
+  }
+}
+
+impl<'a> Into<Kv<'a>> for Iter<'a ,(&'a str, &'a str)>
+{
+  fn into(self) -> Kv<'a> {
+    let mut vec: Vec<u8> = Vec::new();
+    for i in self {
+      let k = i.0.as_bytes();
+      let v = i.1.as_bytes();
+      vec.push(k.len() as u8);
+      vec.extend_from_slice(k);
+      vec.push(v.len() as u8);
+      vec.extend_from_slice(v);
+    }
+    Kv::try_from(vec).unwrap()
   }
 }
 
