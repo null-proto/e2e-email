@@ -1,3 +1,4 @@
+use crate::frame::field::{M_FROM, M_TITLE, M_TO};
 use crate::kv::Kv;
 use crate::bytes::RawBytes;
 
@@ -49,6 +50,22 @@ where
       title : self.2,
       meta: self.3,
       body: self.4.into(),
+    }
+  }
+}
+
+
+impl<'a, T> Into<Mail<'a>> for (Kv<'a>, T)
+where
+  T: Into<Box<[File<'a>]>>,
+{
+  fn into(self) -> Mail<'a> {
+    Mail {
+      from : self.0.get_raw(M_FROM).unwrap(),
+      to : self.0.get_raw(M_TO).unwrap(),
+      title : self.0.get_raw(M_TITLE).unwrap(),
+      meta: self.0,
+      body: self.1.into(),
     }
   }
 }

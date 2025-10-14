@@ -9,64 +9,6 @@ pub struct Kv<'a>(HashMap<Bytes<'a>, RawBytes>, Arc<[u8]>);
 
 pub struct KvBuilder<'a>(Vec<(&'a str, &'a str)>);
 
-impl TryFrom<&[u8]> for Kv<'_> {
-  type Error = crate::error::Error;
-  fn try_from(value: &[u8]) -> Result<Self, Self::Error> {
-    let mut map = HashMap::default();
-    let value: Arc<[u8]> = Arc::from(value);
-    let mut c = 0usize;
-    let mut a = 0usize;
-    while c < value.len() {
-      if let Some(v) = value.get(c) {
-        a += *v as usize + 1;
-      } else {
-        break;
-      }
-
-      if let Some(v) = value.get(a) {
-        let key = RawBytes::new(value.clone(), c + 1, a);
-        c += *v as usize + 1;
-        let value = RawBytes::new(value.clone(), a + 1, c);
-        map.insert(key.into(), value);
-      } else {
-        return Err(Error::InvalidFrame);
-      }
-    }
-    Ok(Kv(map, value.clone()))
-  }
-}
-
-impl TryFrom<Box<[u8]>> for Kv<'_> {
-  type Error = crate::error::Error;
-  fn try_from(value: Box<[u8]>) -> Result<Self, Self::Error> {
-    let mut map = HashMap::default();
-    let value: Arc<[u8]> = Arc::from(value);
-    let mut c = 0usize;
-    let mut a = 0usize;
-    while c < value.len() {
-      match value.get(c) {
-        Some(n) => {
-          a += 1 + *n as usize;
-        }
-        None => break,
-      }
-
-      match value.get(a) {
-        Some(n) => {
-          let key = RawBytes::new(value.clone(), c + 1, a);
-          c = 1 + a + *n as usize;
-          let value = RawBytes::new(value.clone(), a + 1, c);
-          map.insert(key.into(), value);
-          a = c;
-        }
-        None => {
-          return Err(Error::InvalidFrame);
-        }
-      }
-    }
-    Ok(Kv(map, value.clone()))
-  }
-}
 
 impl TryFrom<Vec<u8>> for Kv<'_> {
   type Error = crate::error::Error;
@@ -92,7 +34,7 @@ impl TryFrom<Vec<u8>> for Kv<'_> {
           a = c;
         }
         None => {
-          return Err(Error::InvalidFrame);
+          return Err(Error::InvalidKv);
         }
       }
     }

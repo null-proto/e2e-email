@@ -113,9 +113,9 @@ impl<'a, 'b> Frame<'b> {
       }
       0x02 => {
         // kv
-        let mut data = vec![0u8; size as usize].into_boxed_slice();
+        let mut data = vec![0u8; size as usize];
         io.read(&mut data).map_err(|_| Error::ConnectionError)?;
-        let kv = Kv::try_from(data.as_ref())?;
+        let kv = Kv::try_from(data)?;
         Ok(FrameType::Kv(kv))
       }
       0x03 => {
